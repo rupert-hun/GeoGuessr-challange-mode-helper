@@ -1,0 +1,18 @@
+{
+	"name" : "GeoGuessr challange mode helper",
+	"description" : "Useable in GeoGuessr challange mode. Adds two buttons at the top. Pressing the first button loads additional results (max 125), selects the first round, selects all participants. Pressing the second button only selects the loaded results.",
+	"version" : "1.27",
+	"manifest_version" : 2,
+	"icons": {
+		"32": "RptCustomGeoScript.png"
+	},
+	"content_scripts" : [
+		{
+			"js" : ["scripts/RptCustomGeoScript.js"],
+			"matches" : [
+				"https://www.geoguessr.com/results/*",
+				"https://geoguessr.com/results/*"
+			]
+		}
+	]
+}
