@@ -1,5 +1,6 @@
 var RptCustomGeoScript = {
 	maxIterations : 5,
+	active_round : null,
 	lang : {
 		'loading' : 'Loading...',
 		'load_button_text' : 'Load results and select all',
@@ -21,6 +22,50 @@ var RptCustomGeoScript = {
 		RptCustomGeoScript.addCopyButtons();
 		RptCustomGeoScript.addButtons();
 	},
+	setHeaderEvents : function() {
+		var results_header_row = null;
+		document.querySelectorAll('div[class^="results_row__"]').forEach(el => {
+			if(RptCustomGeoScript.hasClass(el, 'results_headerRow')) {
+				results_header_row = el;
+			}
+		});
+		if(results_header_row !== null) {
+			results_header_row.querySelectorAll('div[class^="results_hideOnSmallScreen__"]').forEach(el => {
+				el.addEventListener('click', function(event) {
+					var new_active_round = null;
+					switch(event.target.innerHTML) {
+						case 'Round 1':
+							new_active_round = 1;
+							break;
+						case 'Round 2':
+							new_active_round = 2;
+							break;
+						case 'Round 3':
+							new_active_round = 3;
+							break;
+						case 'Round 4':
+							new_active_round = 4;
+							break;
+						case 'Round 5':
+							new_active_round = 5;
+							break;
+						case 'Total':
+							new_active_round = 6;
+							break;
+					}
+					if(new_active_round === RptCustomGeoScript.active_round) {
+						RptCustomGeoScript.active_round = null;
+					} else {
+						RptCustomGeoScript.active_round = new_active_round;
+					}
+					RptCustomGeoScript.removeNamesOnMap();
+					setTimeout(function() { RptCustomGeoScript.setNamesOnMap(); }, 1000);
+				});
+			});
+		} else {
+			
+		}
+	},
 	addStyle : function() {
 		var style = document.createElement('style');
 		style.appendChild(document.createTextNode(
@@ -33,7 +78,8 @@ var RptCustomGeoScript = {
 		));
 		style.appendChild(document.createTextNode(
 			'.player_result_table { border: 0; border-spacing: 0; }' + 
-			'.player_result_table td { line-height: 15px; text-align: right; border: 0; box-sizing: border-box; padding-left: 10px; }' + 
+			'.player_result_table tr.active td { color: #ff0000; }' + 
+			'.player_result_table td { line-height: 15px; text-align: left; border: 0; box-sizing: border-box; padding-left: 10px; }' + 
 			'.player_result_table tr.round_6 td { border-top: 1px solid #000; }' + 
 			'.player_result_table td.label { font-weight: bold; padding-left: 0; }'
 		));
@@ -181,7 +227,6 @@ var RptCustomGeoScript = {
 	select : function() {
 		RptCustomGeoScript.selectResultRows();
 		RptCustomGeoScript.selectFirstColumn();
-		setTimeout(function() { RptCustomGeoScript.setNamesOnMap(); }, 2000);
 	},
 	copyResultsAsHTML : function() {
 		navigator.clipboard.writeText(document.querySelector('div[class^="results_table__"]').outerHTML);
@@ -264,6 +309,7 @@ var RptCustomGeoScript = {
 		alert(RptCustomGeoScript.lang.results_copied_to_clipboard);
 	},
 	selectFirstColumn : function() {
+		RptCustomGeoScript.setHeaderEvents();
 		var round_col_headers = document.querySelectorAll('div[class^="results_hideOnSmallScreen__"]');
 		var has_selected_col = false;
 		document.querySelectorAll('div[class^="results_hideOnSmallScreen__"]').forEach(el => {
@@ -277,7 +323,17 @@ var RptCustomGeoScript = {
 			}
 		});
 	},
+	removeNamesOnMap : function() {
+		document.querySelectorAll('div[class^="player_info"]').forEach(el => {
+			el.remove();
+		});
+	},
 	setNamesOnMap : function() {
+		/*
+		if(RptCustomGeoScript.active_round === null) {
+			return false;
+		}
+		*/
 		var data_by_src = {};
 		document.querySelectorAll('div[class^="results_row__"]').forEach(el => {
 			if(!RptCustomGeoScript.hasClass(el, 'results_headerRow')) {
@@ -331,12 +387,13 @@ var RptCustomGeoScript = {
 					data_table.setAttribute('class', 'player_result_table');
 					for(var key in data_by_src[image_src]['rounds']) {
 						var line = document.createElement('tr');
-						line.setAttribute('class', key);
+						line.setAttribute('class', key + (key === 'round_' + RptCustomGeoScript.active_round ? ' active' : ''));
 						// label
 						var label_cell = document.createElement('td');
 						label_cell.setAttribute('class', 'label');
 						label_cell.appendChild(document.createTextNode(RptCustomGeoScript.lang[key]));
 						line.appendChild(label_cell);
+						data_table.appendChild(line);
 						// distance
 						var distance_cell = document.createElement('td');
 						distance_cell.setAttribute('class', 'distance');
